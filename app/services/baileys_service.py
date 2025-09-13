@@ -62,7 +62,11 @@ class BaileysWhatsAppService:
         try:
             # Ensure phone number has correct format
             if "@s.whatsapp.net" not in phone_number:
-                phone_number = f"{phone_number}@s.whatsapp.net"
+                # Clean phone number and add WhatsApp format
+                clean_phone = ''.join(filter(str.isdigit, phone_number))
+                if not clean_phone.startswith("55"):
+                    clean_phone = f"55{clean_phone}"
+                phone_number = f"{clean_phone}@s.whatsapp.net"
             
             payload = {
                 "to": phone_number,

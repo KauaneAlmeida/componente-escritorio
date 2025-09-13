@@ -197,30 +197,46 @@ class HybridOrchestrator:
             from app.services.baileys_service import baileys_service
             
             # Format phone number for WhatsApp
-            phone_formatted = phone_number
-            if not phone_formatted.startswith("55"):
-                phone_formatted = f"55{phone_formatted}"
-            if "@s.whatsapp.net" not in phone_formatted:
-                phone_formatted = f"{phone_formatted}@s.whatsapp.net"
+            # Clean and format phone number
+            phone_clean = ''.join(filter(str.isdigit, phone_number))
+            
+            # Add country code if missing
+            if len(phone_clean) == 10:
+                # Add 9 for mobile numbers without it (Brazilian format)
+                phone_formatted = f"55{phone_clean[:2]}9{phone_clean[2:]}"
+            elif len(phone_clean) == 11:
+                phone_formatted = f"55{phone_clean}"
+            else:
+                phone_formatted = phone_clean
+            
+            # Add WhatsApp suffix
+            whatsapp_number = f"{phone_formatted}@s.whatsapp.net"
             
             # Prepare initial WhatsApp message
             user_name = session_data.get("responses", {}).get("name", "Cliente")
+            responses = session_data.get("responses", {})
+            
             initial_message = f"""Olá {user_name}! 👋
 
-Recebemos sua solicitação através do nosso site e estamos aqui para ajudá-lo.
+Recebemos sua solicitação através do nosso site e estamos aqui para ajudá-lo com questões jurídicas.
+
+📋 *Resumo das suas informações:*
+• Nome: {responses.get("name", "Não informado")}
+• Área jurídica: {responses.get("area_of_law", "Não especificada")}
+• Situação: {responses.get("situation", "Não informada")[:100]}{"..." if len(responses.get("situation", "")) > 100 else ""}
 
 Nossa equipe jurídica especializada está pronta para analisar seu caso. Vamos continuar nossa conversa aqui no WhatsApp para maior comodidade.
 
-Como posso ajudá-lo hoje?"""
+Como posso ajudá-lo hoje? 🤝"""
             
             # Send WhatsApp message
             whatsapp_success = False
             try:
                 whatsapp_success = await baileys_service.send_whatsapp_message(
-                    phone_formatted, 
+                    whatsapp_number, 
                     initial_message
                 )
-                logger.info(f"📱 WhatsApp message sent to {phone_number}: {whatsapp_success}")
+                logger.info(f"📱 WhatsApp message sent to {whatsapp_number}: {whatsapp_success}")
             except Exception as whatsapp_error:
                 logger.error(f"❌ Failed to send WhatsApp message: {str(whatsapp_error)}")
             
@@ -228,8 +244,9 @@ Como posso ajudá-lo hoje?"""
                 "response_type": "phone_submitted",
                 "session_id": session_id,
                 "phone_number": phone_number,
+                "phone_formatted": phone_formatted,
                 "whatsapp_sent": whatsapp_success,
-                "message": "Obrigado! Enviamos uma mensagem para seu WhatsApp. Continue a conversa por lá!" if whatsapp_success else "Obrigado pelo seu número! Nossa equipe entrará em contato em breve."
+                "message": f"✅ Perfeito! {'Enviamos uma mensagem para seu WhatsApp ' + phone_clean + '. Continue a conversa por lá!' if whatsapp_success else 'Registramos seu número ' + phone_clean + '. Nossa equipe entrará em contato em breve.'}"
             }
             
         except Exception as e:

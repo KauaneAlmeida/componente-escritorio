@@ -80,11 +80,20 @@ async def respond_to_conversation(request: ConversationRequest):
 
 
 @router.post("/conversation/submit-phone")
-async def submit_phone_number(phone_number: str, session_id: str):
+async def submit_phone_number(request: dict):
     """
     Submit phone number and trigger WhatsApp flow.
     """
     try:
+        phone_number = request.get("phone_number")
+        session_id = request.get("session_id")
+        
+        if not phone_number or not session_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Missing phone_number or session_id"
+            )
+        
         logger.info(f"📱 Phone submitted | session={session_id} | number={phone_number}")
 
         result = await hybrid_orchestrator.handle_phone_number_submission(phone_number, session_id)

@@ -72,18 +72,29 @@ A production-ready FastAPI backend for law firm client intake with WhatsApp inte
    docker compose up --build -d
    ```
 
-4. **Connect WhatsApp**:
+4. **Access the application**:
+   - **Landing Page with Chat**: http://localhost:8080
+   - **WhatsApp QR Code**: http://localhost:3000/qr
+   - **Backend API**: http://localhost:8000
+   - **Health Check**: http://localhost:8000/health
+
+5. **Connect WhatsApp**:
    - Open http://localhost:3000/qr
    - Scan QR code with WhatsApp
    - Wait for "Connected" status
 
-5. **Test the API**:
+6. **Test the system**:
    ```bash
    # Health check
    curl http://localhost:8000/health
    
-   # Start conversation
+   # Test conversation flow
    curl -X POST http://localhost:8000/api/v1/conversation/start
+   
+   # Test chat directly
+   curl -X POST http://localhost:8000/api/v1/chat \
+     -H "Content-Type: application/json" \
+     -d '{"message": "Hello", "session_id": "test"}'
    ```
 
 ### Environment Variables
@@ -101,6 +112,8 @@ GEMINI_API_KEY=your-gemini-api-key
 
 # WhatsApp Configuration
 WHATSAPP_PHONE_NUMBER=+5511918368812
+WHATSAPP_BOT_URL=http://law_firm_whatsapp_bot:3000
+FASTAPI_WEBHOOK_URL=http://law_firm_backend:8000/api/v1/whatsapp/webhook
 ```
 
 ## 📚 API Endpoints
@@ -176,6 +189,12 @@ The system uses Google Gemini for legal consultation responses with:
 - **Features**: Conversation flow, AI integration, Firebase
 - **Health Check**: `http://localhost:8000/health`
 
+### Frontend Service (`law_firm_frontend`)
+- **Port**: 8080
+- **Technology**: Nginx + Static HTML/JS
+- **Features**: Landing page with integrated chat
+- **URL**: `http://localhost:8080`
+
 ### WhatsApp Bot Service (`law_firm_whatsapp_bot`)
 - **Port**: 3000
 - **Technology**: Baileys (Node.js)
@@ -224,7 +243,7 @@ docker compose -f docker-compose.yml up -d
 docker compose logs -f
 
 # Scale services
-docker compose up --scale backend=2 -d
+docker compose up --scale law_firm_backend=2 -d
 ```
 
 ### Environment-Specific Configuration
@@ -255,6 +274,15 @@ node whatsapp_baileys.js
 docker compose up --build
 ```
 
+### Frontend Development
+```bash
+# Serve frontend locally for development
+cd frontend
+python -m http.server 8080
+# or
+npx serve -p 8080
+```
+
 ### Testing
 ```bash
 # Install test dependencies
@@ -263,8 +291,11 @@ pip install -r requirements-dev.txt
 # Run tests
 pytest
 
-# Test conversation flow
+# Test full conversation flow
 curl -X POST http://localhost:8000/api/v1/conversation/start
+curl -X POST http://localhost:8000/api/v1/conversation/respond \
+  -H "Content-Type: application/json" \
+  -d '{"message": "João Silva", "session_id": "test_session"}'
 ```
 
 ## 📝 Customization
@@ -296,6 +327,12 @@ Your custom WhatsApp message template...
 
 ### Common Issues
 
+1. **Frontend not connecting to backend**:
+   - Check if all services are running: `docker compose ps`
+   - Verify CORS configuration in FastAPI
+   - Check nginx proxy configuration
+   - Test API directly: `curl http://localhost:8000/health`
+
 1. **WhatsApp not connecting**:
    - Check QR code at http://localhost:3000/qr
    - Ensure phone has internet connection
@@ -316,15 +353,22 @@ Your custom WhatsApp message template...
 # View all logs
 docker compose logs -f
 
-# Backend logs only
-docker compose logs -f backend
+# Individual service logs
+docker compose logs -f law_firm_backend
+docker compose logs -f law_firm_frontend
+docker compose logs -f law_firm_whatsapp_bot
 
-# WhatsApp bot logs only  
-docker compose logs -f whatsapp_bot
-
-# Follow specific container
-docker logs -f law_firm_backend
+# Follow specific container with timestamps
+docker logs -f --timestamps law_firm_backend
 ```
+
+### Service URLs
+- **Landing Page**: http://localhost:8080
+- **Backend API**: http://localhost:8000
+- **WhatsApp QR**: http://localhost:3000/qr
+- **Health Checks**: 
+  - Backend: http://localhost:8000/health
+  - WhatsApp: http://localhost:3000/health
 
 ## 📞 Support
 

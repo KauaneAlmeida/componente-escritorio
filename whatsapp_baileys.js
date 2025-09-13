@@ -251,15 +251,19 @@ class BaileysWhatsAppBot {
 
     async forwardToWebhook(from, message, messageId) {
         try {
-            const webhookUrl = process.env.FASTAPI_WEBHOOK_URL || 'http://backend:8000/api/v1/whatsapp/webhook';
+            const webhookUrl = process.env.FASTAPI_WEBHOOK_URL || 'http://law_firm_backend:8000/api/v1/whatsapp/webhook';
             const payload = { from, message, messageId, timestamp: new Date().toISOString(), platform: 'whatsapp' };
 
             console.log('🔄 Forwarding message to FastAPI webhook:', webhookUrl);
+            
+            // Use node-fetch or built-in fetch (Node 18+)
+            const fetch = globalThis.fetch || require('node-fetch');
             const response = await fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            
             if (response.ok) console.log('✅ Message forwarded to FastAPI successfully');
             else console.error('❌ Failed to forward message to FastAPI:', response.status);
         } catch (error) {

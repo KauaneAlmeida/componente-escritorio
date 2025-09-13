@@ -10,7 +10,7 @@ services:
     environment:
       - NODE_ENV=production
       - PYTHONUNBUFFERED=1
-      - WHATSAPP_BOT_URL=http://whatsapp_bot:3000
+      - WHATSAPP_BOT_URL=http://law_firm_whatsapp_bot:3000
       - FIREBASE_CREDENTIALS=/firebase-key.json
     env_file:
       - .env
@@ -19,7 +19,7 @@ services:
     networks:
       - law_firm_network
     depends_on:
-      whatsapp_bot:
+      law_firm_whatsapp_bot:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -36,7 +36,7 @@ services:
           memory: 256M
           cpus: '0.25'
 
-  whatsapp_bot:
+  law_firm_whatsapp_bot:
     build:
       context: .
       dockerfile: Dockerfile.whatsapp
@@ -48,6 +48,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - FIREBASE_CREDENTIALS=/firebase-key.json
+      - FASTAPI_WEBHOOK_URL=http://law_firm_backend:8000/api/v1/whatsapp/webhook
     env_file:
       - .env
     volumes:
@@ -72,17 +73,17 @@ services:
           cpus: '0.15'
 
   frontend:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     container_name: law_firm_frontend
     restart: always
     ports:
       - "8080:80"   # Frontend acessível em http://localhost:8080
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro   # coloque seu index.html dentro de ./frontend
     networks:
       - law_firm_network
     depends_on:
-      - backend
+      - law_firm_backend
 
 volumes:
   whatsapp_session:
