@@ -175,9 +175,9 @@
   <script>
     // API URL configuration for Docker and local development
     const API_BASE_URL = window.location.port === '8080' 
-      ? 'http://localhost:8000'  // When accessing via nginx on port 8080, proxy to backend
+      ? ''  // Use relative URLs when accessing via nginx on port 8080 (Docker)
       : window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://localhost:8000'
+      ? 'http://localhost:8000'  // Direct backend access for development
       : `${window.location.protocol}//${window.location.hostname}:8000`;
 
     function addMessage(text, sender = 'user') {

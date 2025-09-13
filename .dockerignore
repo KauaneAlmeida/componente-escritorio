@@ -3,11 +3,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-Dockerfile
-Dockerfile.backend
-docker-compose.yml
-.dockerignore
-.git
 
 # Python
 __pycache__/
@@ -16,7 +11,7 @@ __pycache__/
 .venv/
 venv/
 env/
-.env
+*.pyc
 
 # Session files (will be mounted as volume)
 whatsapp_session/
@@ -35,8 +30,9 @@ logs/
 *.swp
 *.swo
 
-# Windows/Mac
+# OS
 Thumbs.db
+.DS_Store
 
 # Build artifacts
 dist/
@@ -48,9 +44,21 @@ coverage/
 .nyc_output/
 
 # Firebase
-firebase-key.json
 .firebase/
 
 # Temporary files
 tmp/
 temp/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Environment files (will be mounted)
+.env
+.env.*
+
+# Documentation
+README.md
+*.md

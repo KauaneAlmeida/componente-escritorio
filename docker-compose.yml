@@ -1,12 +1,12 @@
 services:
-  backend:
+  law_firm_backend:
     build:
       context: .
       dockerfile: Dockerfile.backend
     container_name: law_firm_backend
     restart: always
     ports:
-      - "8000:8000"   # FastAPI expõe na porta 8000
+      - "8000:8000"
     environment:
       - NODE_ENV=production
       - PYTHONUNBUFFERED=1
@@ -15,7 +15,7 @@ services:
     env_file:
       - .env
     volumes:
-      - "C:/Users/Kauane Almeida/Downloads/project-008-orchestration/project/firebase-key.json:/firebase-key.json"
+      - ./firebase-key.json:/firebase-key.json:ro
     networks:
       - law_firm_network
     depends_on:
@@ -43,7 +43,7 @@ services:
     container_name: law_firm_whatsapp_bot
     restart: always
     ports:
-      - "3000:3000"   # Express usa 3000 dentro do container
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -54,7 +54,7 @@ services:
     volumes:
       - whatsapp_session:/app/whatsapp_session
       - whatsapp_messages:/app/messages
-      - "C:/Users/Kauane Almeida/Downloads/project-008-orchestration/project/firebase-key.json:/firebase-key.json"
+      - ./firebase-key.json:/firebase-key.json:ro
     networks:
       - law_firm_network
     healthcheck:
@@ -72,18 +72,32 @@ services:
           memory: 128M
           cpus: '0.15'
 
-  frontend:
+  law_firm_frontend:
     build:
       context: .
       dockerfile: Dockerfile.frontend
     container_name: law_firm_frontend
     restart: always
     ports:
-      - "8080:80"   # Frontend acessível em http://localhost:8080
+      - "8080:80"
     networks:
       - law_firm_network
     depends_on:
       - law_firm_backend
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.2'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
 
 volumes:
   whatsapp_session:

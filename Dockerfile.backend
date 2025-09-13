@@ -18,7 +18,8 @@ COPY requirements.txt ./
 
 # Upgrade pip and install dependencies
 RUN pip install --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip cache purge
 
 # Copy application files
 COPY app/ ./app/
